@@ -25,8 +25,8 @@ class SimCar(threading.Thread):
     __LAST_SPIN_END_TIME = 0
     # 轮胎半径2cm
     R_WHEEL = 0.02
-    # 两轮距离80cm
-    LENTH_CODER = 0.8
+    # 两轮距离8cm
+    LENTH_CODER = 0.08
     # 每个转动角对应的滚动距离
     LENTH_PER_CNT = math.pi * 2 * R_WHEEL / (360 / 0.45)
     # 轮子的转速,1r/s,需要以弧度计算

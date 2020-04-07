@@ -19,7 +19,7 @@ def point_roate(car: SimCar, aim_angel):
         dw = 2 * math.pi + dw
     # 仿真需要花费的时间
     # 设置两轮速度
-    wl = -car.RDPS_MAX if dw > 0 else car.RDPS_MAX
+    wl = -car.RDPS_MAX/10 if dw > 0 else car.RDPS_MAX/10
     wr = -wl
     t = -dw * car.LENTH_CODER / (2 * wl*car.R_WHEEL)
     car.set_rps(wl, wr)
@@ -105,6 +105,7 @@ if __name__ == '__main__':
     aLogger.start()
     aCar = SimCar(0, 0, math.pi / 2, aLogger)
     aCar.start()
+    aLogger.set_lenth_coder(aCar.LENTH_CODER)
     plan1(aCar, -1, -2, -math.pi/2)
     aLogger.stop_and_save(sys.path[0]+"/car_a_%s.csv" %
                           datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
@@ -113,6 +114,7 @@ if __name__ == '__main__':
     bLogger.start()
     bCar = SimCar(0, 0, math.pi / 2, bLogger)
     bCar.start()
+    bLogger.set_lenth_coder(bCar.LENTH_CODER)
     plan2(bCar, -1, -2, -math.pi / 2)
     bLogger.stop_and_save(sys.path[0]+"/car_b_%s.csv" %
                           datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
