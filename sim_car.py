@@ -42,6 +42,12 @@ class SimCar(threading.Thread):
         self.angel = angle
         self.__logger = logger
 
+    # 配置小车参数，轮子半径，两轮距离，轮子最高转速
+    def configure(self, r_wheel, lenth_coder, rdps_max):
+        self.R_WHEEL = r_wheel
+        self.LENTH_CODER = lenth_coder
+        self.RDPS_MAX = rdps_max
+
     def clone_pose(self):
         return SimCar(self.x, self.y, self.angel, None)
 
