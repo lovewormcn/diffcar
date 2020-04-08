@@ -10,7 +10,7 @@ class CarLogger(threading.Thread):
     X = []
     Y = []
     T = []
-    ANGEL = []
+    ANGLE = []
     __LENTH_CODER = None
 
     __stop = False
@@ -36,11 +36,11 @@ class CarLogger(threading.Thread):
         else:
             self.save_csv(file_path)
 
-    def log(self, t, x, y, angel):
+    def log(self, t, x, y, angle):
         self.T.append(t)
         self.X.append(x)
         self.Y.append(y)
-        self.ANGEL.append(angel)
+        self.ANGLE.append(angle)
 
     def draw_data(self, plt_id):
         plt.figure(plt_id)
@@ -52,23 +52,23 @@ class CarLogger(threading.Thread):
     def print_data(self):
         if len(self.T) > 0:
             print("%d-%f:[%f,%f,%f]\n" %
-                  (len(self.T), self.T[-1], self.X[-1], self.Y[-1], self.ANGEL[-1]))
+                  (len(self.T), self.T[-1], self.X[-1], self.Y[-1], self.ANGLE[-1]))
 
     def print_diff(self):
         if len(self.T) > 1:
             dt = self.T[-1]-self.T[-2]
             vx = (self.X[-1] - self.X[-2]) / dt
             vy = (self.Y[-1] - self.Y[-2]) / dt
-            vangel = (self.ANGEL[-1] - self.ANGEL[-2]) / dt
+            vangle = (self.ANGLE[-1] - self.ANGLE[-2]) / dt
             print("delta-%f:[%f,%f,%f]\n" %
-                  (dt, vx, vy, vangel))
+                  (dt, vx, vy, vangle))
 
     def save_csv(self, file_path):
         fcsv = open(file_path, 'w+')
-        fcsv.write('T,X,Y,ANGEL\n')
+        fcsv.write('T,X,Y,ANGLE\n')
         for i in range(0, len(self.T)):
             fcsv.write('%f,%f,%f,%f\n' %
-                       (self.T[i], self.X[i], self.Y[i], self.ANGEL[i]))
+                       (self.T[i], self.X[i], self.Y[i], self.ANGLE[i]))
         fcsv.close()
 
     def set_lenth_coder(self, LENTH_CODER):
@@ -76,14 +76,14 @@ class CarLogger(threading.Thread):
 
     def save_csv_wheel(self, file_path):
         fcsv = open(file_path, 'w+')
-        fcsv.write('T,X,Y,ANGEL,LX,LY,RX,RY\n')
+        fcsv.write('T,X,Y,ANGLE,LX,LY,RX,RY\n')
         for i in range(0, len(self.T)):
             # 轮胎与x轴夹角
-            ang_wheel = math.pi / 2 - self.ANGEL[i]
+            ang_wheel = math.pi / 2 - self.ANGLE[i]
             rx = self.X[i]+self.__LENTH_CODER / 2 * math.cos(ang_wheel)
             ry = self.Y[i]-self.__LENTH_CODER / 2 * math.sin(ang_wheel)
             lx = self.X[i]-self.__LENTH_CODER / 2 * math.cos(ang_wheel)
             ly = self.Y[i]+self.__LENTH_CODER / 2 * math.sin(ang_wheel)
             fcsv.write('%f,%f,%f,%f,%f,%f,%f,%f\n' %
-                       (self.T[i], self.X[i], self.Y[i], self.ANGEL[i], lx, ly, rx, ry))
+                       (self.T[i], self.X[i], self.Y[i], self.ANGLE[i], lx, ly, rx, ry))
         fcsv.close()

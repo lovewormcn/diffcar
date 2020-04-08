@@ -8,7 +8,7 @@ from car_logger import CarLogger
 class SimCar(threading.Thread):
     x = 0
     y = 0
-    angel = 0
+    angle = 0
 
     rps_l = 0.0
     rps_r = 0.0
@@ -34,12 +34,10 @@ class SimCar(threading.Thread):
     # 轮子的最大线速度
     VELOCITY_MAX = R_WHEEL * RDPS_MAX
 
-    def __init__(self, x, y, angle, logger):
+    def __init__(self, x, y, angle, logger=None):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self.x = x
-        self.y = y
-        self.angel = angle
+        self.set_pose(x, y, angle)
         self.__logger = logger
 
     # 配置小车参数，轮子半径，两轮距离，轮子最高转速
@@ -48,8 +46,17 @@ class SimCar(threading.Thread):
         self.LENTH_CODER = lenth_coder
         self.RDPS_MAX = rdps_max
 
+    # 设置小车的状态
+    def set_pose(self, x=None, y=None, angle=None):
+        if not x is None:
+            self.x = x
+        if not y is None:
+            self.y = y
+        if not angle is None:
+            self.angle = angle
+
     def clone_pose(self):
-        return SimCar(self.x, self.y, self.angel, None)
+        return SimCar(self.x, self.y, self.angle, None)
 
     def distance(self, aCar):
         dx = aCar.x - self.x
@@ -65,20 +72,20 @@ class SimCar(threading.Thread):
     def spin_once(self):
         #Dis_L = LENTH_PER_CNT * DeltaCntL
         #Dis_R = LENTH_PER_CNT * DeltaCntR
-        # 算出dt,dl,dr,dangel
+        # 算出dt,dl,dr,dangle
         dt = time.time()-self.__LAST_SPIN_START_TIME
         Dis_L = self.velocity_l*dt
         Dis_R = self.velocity_r*dt
         Angle_Del = (Dis_R - Dis_L) / self.LENTH_CODER
         # 更新到最新位置
-        self.x += (Dis_R+Dis_L)*math.cos(self.angel+Angle_Del)/2
-        self.y += (Dis_R+Dis_L)*math.sin(self.angel+Angle_Del)/2
-        tmp = self.angel+Angle_Del
+        self.x += (Dis_R+Dis_L)*math.cos(self.angle+Angle_Del)/2
+        self.y += (Dis_R+Dis_L)*math.sin(self.angle+Angle_Del)/2
+        tmp = self.angle+Angle_Del
         if tmp > math.pi:
             tmp -= 2*math.pi
         elif tmp < -math.pi:
             tmp += 2 * math.pi
-        self.angel = tmp
+        self.angle = tmp
 
     # 设置左右轮角速度
     def set_rps(self, rps_l, rps_r):
@@ -103,7 +110,7 @@ class SimCar(threading.Thread):
             self.__LAST_SPIN_START_TIME = t_spin_start
             if self.__logger:
                 self.__logger.log(t_spin_start,
-                                  self.x, self.y, self.angel)
+                                  self.x, self.y, self.angle)
 
             # 控制计算频率，依据执行耗时，决定睡眠时间
             t_sleep = self.__TIME_PER_SPIN - (time.time()-t_spin_start)
@@ -111,13 +118,13 @@ class SimCar(threading.Thread):
                 time.sleep(t_sleep)
 
     # 坐标转换
-    def trans_car_coordinate(self, x, y, angel):
+    def trans_car_coordinate(self, x, y, angle):
         # 坐标平移
         x = x - self.x
         y = y - self.y
         # 坐标旋转
-        roate = -math.pi / 2 + self.angel
+        roate = -math.pi / 2 + self.angle
         x = x * math.cos(roate) + y * math.sin(roate)
         y = y * math.cos(roate) - x * math.sin(roate)
-        angel = angel - roate
-        return (x, y, angel)
+        angle = angle - roate
+        return (x, y, angle)

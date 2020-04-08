@@ -10,9 +10,10 @@ import datetime
 
 
 # 将小车转到目标角度，返回花费的时间
-def point_roate(car: SimCar, aim_angel):
+# aim_angle：目标角度，b_sim：是否模拟
+def point_roate(car: SimCar, aim_angle, b_sim=True):
     # 计算需要旋转的角度
-    dw = aim_angel - car.angel
+    dw = aim_angle - car.angle
     if dw > math.pi:
         dw = 2 * math.pi - dw
     elif dw < -math.pi:
@@ -21,28 +22,39 @@ def point_roate(car: SimCar, aim_angel):
     # 设置两轮速度
     wl = -car.RDPS_MAX/10 if dw > 0 else car.RDPS_MAX/10
     wr = -wl
-    t = -dw * car.LENTH_CODER / (2 * wl*car.R_WHEEL)
-    car.set_rps(wl, wr)
-    time.sleep(t)
-    car.set_velocity(0, 0)
-    print("point roate to %f cost %fs" % (car.angel, t))
+    t = -dw * car.LENTH_CODER / (2 * wl * car.R_WHEEL)
+    if b_sim:
+        car.set_rps(wl, wr)
+        time.sleep(t)
+        car.set_velocity(0, 0)
+    else:
+        car.set_pose(angle=aim_angle)
+    print("point roate to %f cost %fs" % (car.angle, t))
     return t
 
 
 # 将小车向前开指定距离，返回花费的时间
-def move_straight(car: SimCar, offset):
+# offset：目标距离，b_sim：是否模拟
+def move_straight(car: SimCar, offset, b_sim=True):
     wl = math.copysign(car.VELOCITY_MAX, offset)
     wr = wl
     # 计算指令执行时常
     t = offset / wl
-    car.set_velocity(wl, wr)
-    time.sleep(t)
-    car.set_velocity(0, 0)
+    if b_sim:
+        car.set_velocity(wl, wr)
+        time.sleep(t)
+        car.set_velocity(0, 0)
+    else:
+        car.set_pose(x=car.x+offset*math.cos(car.angle),
+                     y=car.y+offset*math.sin(car.angle))
     print("move straight to [%f,%f] cost %fs" % (car.x, car.y, t))
     return t
 
+# 将小车向前开指定位置，返回花费的时间
+# x,y：目标位置，b_sim：是否模拟
 
-def move_round(car: SimCar, x, y):
+
+def move_round(car: SimCar, x, y, b_sim=True):
     # 将小车从原点沿圆弧移动到x,y位置，返回花费的时间
     #(x, y, _) = car.trans_car_coordinate(x, y, 0)
     # 计算偏航角和左右轮速度比例
@@ -64,57 +76,76 @@ def move_round(car: SimCar, x, y):
         vr = p*vl
     # 计算指令执行时长
     t = (R+car.LENTH_CODER/2)*DW/car.VELOCITY_MAX
-    car.set_velocity(vl, vr)
-    time.sleep(t)
-    car.set_velocity(0, 0)
+    if b_sim:
+        car.set_velocity(vl, vr)
+        time.sleep(t)
+        car.set_velocity(0, 0)
+    else:
+        if x > 0:
+            car.set_pose(x=x, y=y, angle=car.angle - DW)
+        else:
+            car.set_pose(x=x, y=y, angle=car.angle + DW)
     print("move round to [%f,%f] cost %fs" % (car.x, car.y, t))
     return t
 
 # 算法一：1.原地调整航向角面向目标点；2.直线行驶；3.原地调整到目标航向角
 
 
-def plan1(aCar: SimCar, x, y, angel):
+def plan1(aCar: SimCar, x, y, angle, b_sim=True):
     rot = math.atan(y / x)
     d = aCar.distance(x, y)
     t = 0
     if x > 0 and y > 0:
-        t += point_roate(aCar, rot)
+        t += point_roate(aCar, rot, b_sim)
     elif x < 0 and y > 0:
-        t += point_roate(aCar, rot+math.pi)
+        t += point_roate(aCar, rot+math.pi, b_sim)
     elif x < 0 and y < 0:
-        t += point_roate(aCar, rot - math.pi)
+        t += point_roate(aCar, rot - math.pi, b_sim)
     else:
-        t += point_roate(aCar, rot)
-    t += move_straight(aCar, d)
-    t += point_roate(aCar, angel)
+        t += point_roate(aCar, rot, b_sim)
+    t += move_straight(aCar, d, b_sim)
+    t += point_roate(aCar, angle, b_sim)
     print("plan1 time:%f\n" % t)
+    return t
 
 # 算法二：1.沿弧线移动至目标位置；2.原地调整到目标航向角
 
 
-def plan2(aCar: SimCar, x, y, angel):
+def plan2(aCar: SimCar, x, y, angle, b_sim=True):
     t = 0
-    t += move_round(aCar, x, y)
-    t += point_roate(aCar, angel)
+    t += move_round(aCar, x, y, b_sim)
+    t += point_roate(aCar, angle, b_sim)
     print("plan2 time:%f\n" % t)
+    return t
 
 
 if __name__ == '__main__':
 
-    aLogger = CarLogger()
-    aLogger.start()
-    aCar = SimCar(0, 0, math.pi / 2, aLogger)
-    aCar.start()
-    aLogger.set_lenth_coder(aCar.LENTH_CODER)
-    plan1(aCar, -1, -2, -math.pi/2)
-    aLogger.stop_and_save(sys.path[0]+"/car_a_%s.csv" %
-                          datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+    # aLogger = CarLogger()
+    # aLogger.start()
+    # aCar = SimCar(0, 0, math.pi / 2, aLogger)
+    # aCar.start()
+    # aLogger.set_lenth_coder(aCar.LENTH_CODER)
+    # plan1(aCar, -1, -2, -math.pi/2)
+    # aLogger.stop_and_save(sys.path[0]+"/car_a_%s.csv" %
+    #                       datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
 
-    bLogger = CarLogger()
-    bLogger.start()
-    bCar = SimCar(0, 0, math.pi / 2, bLogger)
-    bCar.start()
-    bLogger.set_lenth_coder(bCar.LENTH_CODER)
-    plan2(bCar, -1, -2, -math.pi / 2)
-    bLogger.stop_and_save(sys.path[0]+"/car_b_%s.csv" %
-                          datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+    # bLogger = CarLogger()
+    # bLogger.start()
+    # bCar = SimCar(0, 0, math.pi / 2, bLogger)
+    # bCar.start()
+    # bLogger.set_lenth_coder(bCar.LENTH_CODER)
+    # plan2(bCar, -1, -2, -math.pi / 2)
+    # bLogger.stop_and_save(sys.path[0]+"/car_b_%s.csv" %
+    #                       datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+
+    # 只计算花费时间
+    cCar = SimCar(0, 0, math.pi / 2)
+    cCar.configure(0.02, 0.05, math.pi)
+    for x in range(-25, 25, 3):
+        for y in range(-25, 25, 3):
+            for angle in range(-3, 3, 1):
+                cCar.set_pose(0, 0, math.pi/2)
+                t = plan1(cCar, x/10, y/10, angle/10, b_sim=False)
+                cCar.set_pose(0, 0, math.pi/2)
+                t = plan2(cCar, x/10, y/10,  angle/10, b_sim=False)
