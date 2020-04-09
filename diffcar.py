@@ -140,12 +140,19 @@ if __name__ == '__main__':
     #                       datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
 
     # 只计算花费时间
+    file_path = sys.path[0] + \
+        "/car_c_%s.csv" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    fcsv = open(file_path, 'w+')
+    fcsv.write('LENTH_CODER,R_WHEEL,X,Y,ANGLE,T_PLAN1,T_PLAN2\n')
     cCar = SimCar(0, 0, math.pi / 2)
     cCar.configure(0.02, 0.05, math.pi)
     for x in range(-25, 25, 3):
         for y in range(-25, 25, 3):
             for angle in range(-3, 3, 1):
                 cCar.set_pose(0, 0, math.pi/2)
-                t = plan1(cCar, x/10, y/10, angle/10, b_sim=False)
+                t1 = plan1(cCar, x/10, y/10, angle/10, b_sim=False)
                 cCar.set_pose(0, 0, math.pi/2)
-                t = plan2(cCar, x/10, y/10,  angle/10, b_sim=False)
+                t2 = plan2(cCar, x / 10, y / 10, angle / 10, b_sim=False)
+                fcsv.write("%f,%f,%f,%f,%f,%f,%f\n" %
+                           (cCar.LENTH_CODER, cCar.R_WHEEL, x, y, angle, t1, t2))
+    fcsv.close()
