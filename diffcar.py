@@ -146,13 +146,18 @@ if __name__ == '__main__':
     fcsv.write('LENTH_CODER,R_WHEEL,X,Y,ANGLE,T_PLAN1,T_PLAN2\n')
     cCar = SimCar(0, 0, math.pi / 2)
     cCar.configure(0.02, 0.05, math.pi)
-    for x in range(-25, 25, 3):
-        for y in range(-25, 25, 3):
-            for angle in range(-3, 3, 1):
-                cCar.set_pose(0, 0, math.pi/2)
-                t1 = plan1(cCar, x/10, y/10, angle/10, b_sim=False)
-                cCar.set_pose(0, 0, math.pi/2)
-                t2 = plan2(cCar, x / 10, y / 10, angle / 10, b_sim=False)
-                fcsv.write("%f,%f,%f,%f,%f,%f,%f\n" %
-                           (cCar.LENTH_CODER, cCar.R_WHEEL, x, y, angle, t1, t2))
+    # 圆的半径为1到3，间隔0.1，range必须为整数所以放大了10倍
+    for r in range(10, 30, 1):
+        # 角度为从0到360，间隔30
+        for angle in range(0, 360, 30):
+            # 加15度是为了防止在90、180、270度下，plan2出错
+            rd = (angle+15)/180*math.pi
+            x = r/10 * math.cos(rd)
+            y = r/10 * math.sin(rd)
+            cCar.set_pose(0, 0, math.pi/2)
+            t1 = plan1(cCar, x, y, rd, b_sim=False)
+            cCar.set_pose(0, 0, math.pi/2)
+            t2 = plan2(cCar, x, y, rd, b_sim=False)
+            fcsv.write("%f,%f,%f,%f,%f,%f,%f\n" %
+                       (cCar.LENTH_CODER, cCar.R_WHEEL, x, y, angle+15, t1, t2))
     fcsv.close()
