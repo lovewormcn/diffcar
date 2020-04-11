@@ -143,7 +143,7 @@ if __name__ == '__main__':
     file_path = sys.path[0] + \
         "/car_c_%s.csv" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     fcsv = open(file_path, 'w+')
-    fcsv.write('LENTH_CODER,R_WHEEL,X,Y,ANGLE,T_PLAN1,T_PLAN2\n')
+    fcsv.write('LENTH_CODER,R_WHEEL,X,Y,ANGLE,T_PLAN1,T_PLAN2,OFFSET\n')
     cCar = SimCar(0, 0, math.pi / 2)
     cCar.configure(0.02, 0.05, math.pi)
     # 圆的半径为1到3，间隔0.1，range必须为整数所以放大了10倍
@@ -158,6 +158,6 @@ if __name__ == '__main__':
             t1 = plan1(cCar, x, y, rd, b_sim=False)
             cCar.set_pose(0, 0, math.pi/2)
             t2 = plan2(cCar, x, y, rd, b_sim=False)
-            fcsv.write("%f,%f,%f,%f,%f,%f,%f\n" %
-                       (cCar.LENTH_CODER, cCar.R_WHEEL, x, y, angle+15, t1, t2))
+            fcsv.write("%f,%f,%f,%f,%f,%f,%f,%f\n" %
+                       (cCar.LENTH_CODER, cCar.R_WHEEL, x, y, angle+15, t1, t2, r/10))
     fcsv.close()
